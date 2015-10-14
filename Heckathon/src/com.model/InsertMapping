@@ -1,0 +1,278 @@
+package com.model;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+public class InsertMapping {
+	public static int ins;
+	public static List<String> colName;
+	public static void getIMapping(String sql2,String result1,String ID) throws IOException
+	{
+		ins=0;
+		String result="no";
+		List<String> sourceCol=new ArrayList();
+		List<String> desCol=new ArrayList();
+		int sIndex=-1, eIndex=-1;
+		int sIndex1=-1, eIndex1=-1;
+				String query="";
+		String[] sql= sql2.split("\\s+");
+		System.out.println(result1);
+		int pointer=0;
+		String find ="";
+		int flag=1;
+		for(int j=0;j<sql.length;j++)
+		{
+			if(sql[j].toLowerCase().contains("(")&& flag==1)
+			{
+				flag=2;
+				sIndex=j;
+			}
+			if(sql[j].toLowerCase().contains(")")&& flag==2)
+			{
+				eIndex=j;
+				flag=0;
+			}
+		}
+		for(int m=sIndex;m<=eIndex;m++)
+		{
+				query=query+sql[m];		
+		}
+		
+		String query1=query.replace("(", "");
+		query1=query1.replace(")", "");
+		//System.out.println("Final query1:"+query1);
+		String[] values=query1.split(",");
+		ins=values.length;
+		//System.out.println(values.length);
+		String temp="";
+		int record=0;
+		String[] values1=result1.split("\\.");
+		int f=eIndex;
+		for(int j=eIndex;j<sql.length-f;j++)
+		{
+			if(sql[j].toLowerCase().contains("sel")||sql[j].toLowerCase().contains("select")&& flag!=11)
+			{
+				flag=11;	
+				sIndex1=j+1;
+				
+				
+//				 result="yes";
+//				 System.out.println("result is yes");
+				//String[] val= result1.split("\\.");
+			}
+			 if(flag==11)
+			{
+				 if(sql[j].toLowerCase().contains(",")|| sql[j+1].toLowerCase().contains("from")&& !sql[j].toLowerCase().contains("("))
+				 {
+					 temp="";
+					 for(int bw=sIndex1;bw<=j;bw++)
+					 {
+					if(!sql[bw].toLowerCase().contains("as") && !sql[bw-1].toLowerCase().contains("as"))
+						
+					{
+							temp=temp+sql[bw];
+					}
+						
+					
+					 }
+					 if(temp.toLowerCase().contains(","))
+					 {
+						 String[] enteries=temp.split(",");
+						 for(String vale:enteries)
+						 {
+							if(vale!=""){
+							 desCol.add(vale);
+							 record++;
+						 }}
+					 }
+					
+					 else
+					 {
+				 	desCol.add(temp);
+					 record++;
+					 }
+					 sIndex1=j+1;
+					 if(record==values.length)
+					 {
+						 break;
+					 }
+				 }
+				 else if(sql[j].toLowerCase().contains("("))
+				 {
+					 int x=j;
+					 for(int check=j;check<sql.length-x;check++)
+					 {
+						 
+						 find=find+" "+sql[check];
+						 //System.out.println(find);
+						
+						 if((find.length()-find.replace("(", "").length())==(find.length()-find.replace(")","").length()))
+								 {
+							 //System.out.println("final find is:"+find);		
+							 j=check+1;
+							 String[] disect=find.split(" ");
+							 for(int dis=0;dis<disect.length;dis++)
+							 {
+								 if(disect[dis].toLowerCase().contains("."))
+								 {
+									 String[] abc=checkcol(disect[dis], sql).split("\\.");
+									 
+									 if(abc.length==3)
+											 {
+										 desCol.add(disect[dis]);
+										 record++;
+										 System.out.println("finally somethins:"+disect[dis]);
+										 break;
+											 }
+								 }
+							 }
+							 
+							 		break;
+								 }
+					 }
+				 }
+			}
+			else if(sql[j].toLowerCase().contains("values")&& flag==0)
+			{
+				flag=3;
+			}
+			else if(sql[j].toLowerCase().contains("(")&& flag==3)
+			{
+				flag=4;
+				sIndex1=j;
+			}
+			else if(sql[j].toLowerCase().contains(")")&& flag==4)
+			{
+				eIndex1=j;
+				flag=5;
+			}
+		}
+		
+		
+		if(flag==5)
+		{
+			for(int m=sIndex1;m<=eIndex1;m++)
+			{
+				query=query+sql[m];
+				int del3=query.indexOf(")");
+				int del4=query.indexOf("(")+1;
+				String query2=query.substring(del4,del3);
+				//System.out.println(query1);
+				String[] values2=query2.split(",");
+			}
+		}
+		
+	
+		if(flag==11)
+		{
+			for(String line:desCol)
+			{
+				//System.out.println(line);
+			}
+		}
+		int ind=0;
+		for(String st:desCol)
+		{
+			String sCol=checkcol(st,sql);
+		//System.out.println(sCol);
+		//System.out.println(Sinfo2.length);
+		//System.out.println(Sinfo2[2]);
+			if(sCol!="" && !sCol.contains(",")){	
+			String[] Sinfo2= sCol.split("\\.");	
+			if(Sinfo2.length==3)
+			{
+				WriteXlsx.WriteCol("Insert",ID,values1[0],values1[1],values[ind],Sinfo2[0],Sinfo2[1],Sinfo2[2],"NIL");
+		ind++;
+			}
+			if(Sinfo2.length==1)
+			{
+				WriteXlsx.WriteCol("Insert",ID,values1[0],values1[1],values[ind],"NA","NA",Sinfo2[0],"NIL");
+				ind++;
+			}
+		
+			}
+			else if(sCol.contains(","))
+			{
+				String[] Sinfo3=sCol.split(",");
+				for(int s3=0;s3<Sinfo3.length;s3++)
+				{
+					String[] Sinfo2= Sinfo3[s3].split("\\.");	
+					if(Sinfo2.length==3)
+					{
+						WriteXlsx.WriteCol("Insert",ID,values1[0],values1[1],values[ind],Sinfo2[0],Sinfo2[1],Sinfo2[2],"Join");
+				
+					}
+					
+				}
+				ind++;
+			}
+			if(ind==(values.length-1))
+			{
+				break;
+			}			
+	}
+		
+		
+	}		
+	
+
+public static String checkcol(String result,String[] sql)
+{
+	String colName="";
+	String col1="";
+	String col2="";
+	if(result.indexOf(".")!=-1)
+			{
+		String[] values= result.split("\\.");	
+		
+		for(int i=0; i<sql.length;i++)
+		{	
+			if(sql[i].contains(values[0])&& !sql[i].contains("."))
+			{
+				if(sql[i-1].indexOf(".")!=-1)
+				{
+				  colName=sql[i-1]+"."+values[1];
+				  //System.out.println(colName);
+				//  System.out.println(sql[i-1]);
+				}
+				else if(sql[i].contains(")")|| sql[i-1].contains(")"))
+				{
+					for(int m=i;m>=1;m--)
+					{
+						if(sql[m].toLowerCase().contains("from"))
+								{
+							if(sql[m+1].indexOf(".")!=-1)
+							{
+							  col1=sql[m+1]+"."+values[1];
+							  //System.out.println(col1);
+							  
+							//  System.out.println(sql[i-1]);
+							}
+								}
+							if(sql[m].toLowerCase().contains("join")&& sql[m+1].toLowerCase().contains("."))
+							{
+								sql[m+1]=sql[m+1].replace(",", "");
+								 col2=sql[m+1]+"."+values[1]+","+col2;
+								  //System.out.println(col2);
+							}
+							colName=col1+","+col2;
+								}
+					}
+				}
+			}
+		}
+	else if(result.contains("<ctrl>")||result.contains("SPCL_PRCS_CODE"))
+	{
+				colName=result;
+	}
+		
+	//System.out.println(colName);
+	return colName;
+}
+}
+		
+	
+
+
