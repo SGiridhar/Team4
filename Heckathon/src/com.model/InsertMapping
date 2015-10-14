@@ -21,6 +21,7 @@ public class InsertMapping {
 		System.out.println(result1);
 		int pointer=0;
 		String find ="";
+		String joincnd="";
 		int flag=1;
 		for(int j=0;j<sql.length;j++)
 		{
@@ -195,7 +196,28 @@ public class InsertMapping {
 			}
 			else if(sCol.contains(","))
 			{
+				if(sCol.contains("\\$"))
+				{
+					String[] nwjoin=sCol.split("\\$");
+					sCol=nwjoin[0];
+					String[] Sinfo3=sCol.split(",");
+					System.out.println(nwjoin[0]+"....."+nwjoin[1]);
+					for(int s3=0;s3<Sinfo3.length;s3++)
+					{
+						String[] Sinfo2= Sinfo3[s3].split("\\.");	
+						if(Sinfo2.length==3)
+						{
+							nwjoin[s3]=nwjoin[s3].replace("\\", "");
+							WriteXlsx.WriteCol("Insert",ID,values1[0],values1[1],values[ind],Sinfo2[0],Sinfo2[1],Sinfo2[2],"Join"+" "+nwjoin[s3]);
+					
+						}
+						
+					}
+					ind++;
+				}
+				else{
 				String[] Sinfo3=sCol.split(",");
+				
 				for(int s3=0;s3<Sinfo3.length;s3++)
 				{
 					String[] Sinfo2= Sinfo3[s3].split("\\.");	
@@ -207,6 +229,7 @@ public class InsertMapping {
 					
 				}
 				ind++;
+				}
 			}
 			if(ind==(values.length-1))
 			{
@@ -220,9 +243,12 @@ public class InsertMapping {
 
 public static String checkcol(String result,String[] sql)
 {
+	String joincol="";
 	String colName="";
 	String col1="";
 	String col2="";
+	int pointer = 10;
+	String joincond="";
 	if(result.indexOf(".")!=-1)
 			{
 		String[] values= result.split("\\.");	
@@ -254,10 +280,29 @@ public static String checkcol(String result,String[] sql)
 							if(sql[m].toLowerCase().contains("join")&& sql[m+1].toLowerCase().contains("."))
 							{
 								sql[m+1]=sql[m+1].replace(",", "");
+								for(int adv=m+1;adv<sql.length;adv++)
+								{
+									if(sql[adv].toLowerCase().contains("on"))
+									{
+										pointer=1;
+										joincond=joincond+"\\$";
+									}
+									if(sql[adv].toLowerCase().contains("left")||sql[adv].toLowerCase().contains("right")||sql[adv].toLowerCase().contains("join"))
+									{
+										
+										pointer=0;
+										break;
+									}
+									if(pointer==1)
+									{
+										joincond = joincond+" "+sql[adv];
+									}
+								}
+								
 								 col2=sql[m+1]+"."+values[1]+","+col2;
 								  //System.out.println(col2);
 							}
-							colName=col1+","+col2;
+							colName=col1+","+col2+joincond;
 								}
 					}
 				}
