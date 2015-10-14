@@ -1,0 +1,21 @@
+ DELETE FROM  EDW_SUM_VW.DIM_PROD
+ WHERE  wh_prod_sk IN 
+ (
+ SEL GPC.prod_sk
+FROM  edw_sum_vw.gpc_prod GPC
+ 
+ JOIN EDW_METADATA_VW.SYS_PARM PARM    
+ ON 1=1           AND PARM.parm_name='RACE_VZT_MTH'
+
+ JOIN EDW_SUM_vw.PROD_HIER_LVL_HIST PROD
+ ON PROD.l8_prod_id = GPC.prod_id
+ AND prod.prod_year_month=PARM.parm_val1   
+
+ JOIN EDW_SUM_VW.GL_PRODUCT_ASSIGNMENT_HIST GL
+ ON GPC.bill_ind_set_id = GL.map_sur_key
+ AND GL.prod_year_month =PARM.parm_val1
+ AND GPC.extrc_yr_mth  =PARM.parm_val1 
+ GROUP BY 1 )
+ 
+ AND EDW_SUM_VW.DIM_PROD.PROD_YEAR_MONTH IN (SELECT parm_val1 GROUP BY 1 FROM EDW_METADATA.SYS_PARM WHERE parm_name='RACE_VZT_MTH')  
+ 
