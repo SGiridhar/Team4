@@ -1,0 +1,109 @@
+
+       INSERT INTO EDW_TEMP.TMP_GEO_<src>
+     (
+      man 
+     ,ban 
+     ,bill_inv_sk
+     ,item_id
+     ,tax_eng_type      
+     ,juris_code 
+     ,crir_idn_code
+     ,crir_cat
+     ,oof_ind
+     ,bill_geo
+     ,fin_geo
+     ,src_sys_id
+     ,bill_cyc_num
+     ,inv_ym
+     ,ar_comp_code 
+     ,txn_comp_code 
+     ,prcs_ctrl_id  
+     )
+     SEL 
+  BILL_GEO.man,
+        BILL_GEO.ban,
+        BILL_GEO.bill_inv_sk,
+        BILL_GEO.item_id,
+        BILL_GEO.tax_eng_type,
+        BILL_GEO.juris_code,
+        BILL_GEO.crir_idn_code,
+        BILL_GEO.crir_cat,
+        BILL_GEO.oof_ind,
+        BILL_GEO.billing_geo,
+        COALESCE(
+        CASE
+            WHEN BILL_GEO.R10comp_code = TRV370.key_val_01 AND BILL_GEO.man <> BILL_GEO.ban AND BILL_GEO.CRIR_CAT = 'LEC' THEN
+        CASE
+            WHEN SUBSTR(BILL_GEO.billing_geo,1,2) = 'TX' THEN 'TXG'
+            WHEN SUBSTR(BILL_GEO.billing_geo,1,2) = 'CA' THEN 'CAG'
+            WHEN SUBSTR(BILL_GEO.billing_geo,1,2) = 'VA' THEN 'VAC'
+            WHEN SUBSTR(BILL_GEO.billing_geo,1,2) = 'PA' THEN 'PAB'              ELSE NULL
+        END ELSE NULL
+        END,          
+       TRV355.ret_val,TRV354_LEC.ret_val,TRV354_NON_LEC.ret_val,TRV366.ret_val) AS fin_geo,
+            BILL_GEO.src_sys_id,
+            BILL_GEO.bill_cyc_num,
+            BILL_GEO.inv_ym,
+            COALESCE(TRV371.ret_val, TRV358.ret_val,'UA') AS ar_comp_code,
+            COALESCE(TRV356.ret_val, TRV357.ret_val, ar_comp_code) AS transaction_comp_code,
+            <ctrl>
+        FROM                  
+(
+        SEL 
+  OOF_IND.man,
+            OOF_IND.ban,
+            OOF_IND.tax_eng_type,
+            OOF_IND.juris_code,
+            OOF_IND.crir_idn_code,
+            OOF_IND.crir_cat,
+            OOF_IND.src_sys_id,
+            OOF_IND.oof_ind,
+            OOF_IND.lgl_ent_code,
+            OOF_IND.bill_cyc_num,
+            OOF_IND.inv_ym,
+            OOF_IND.bill_inv_sk,
+            OOF_IND.item_id,
+            COALESCE(
+            CASE
+                WHEN OOF_IND.R10comp_code = TRV370.key_val_01 AND OOF_IND.man <> OOF_IND.ban THEN SUBSTR(OOF_IND.juris_code,1,2) ELSE NULL
+            END,
+            CASE
+                WHEN OOF_IND.R10comp_code = TRV370.key_val_01 AND OOF_IND.man = OOF_IND.ban THEN TRV370.ret_val  ELSE NULL
+            END ,   
+    TRV361.ret_val,TRV364.ret_val,TADS.vtlm_situs_state,OOF_IND.ST_CODE) AS billing_geo_lkup,
+                
+            CASE
+                WHEN SRC.reg_ind = 'N' THEN billing_geo_lkup ELSE COALESCE(TRV362.ret_val,OOF_IND.ST_CODE)
+            END AS billing_geo,
+                OOF_IND.ST_CODE,
+                OOF_IND.R10st_code,
+                OOF_IND.comp_code,
+                OOF_IND.geo_code,
+                OOF_IND.R10comp_code,
+                OOF_IND.tax_legal_ent_code,
+                OOF_IND.ent_code
+            FROM                  
+EDW_TEMP.TMP_OOF_IND_<src> OOF_IND
+
+LEFT JOIN (
+            SEL abbrn_juris,
+                src_geo_scheme,
+                vtlm_situs_state
+                FROM EDW_METADATA_VW.TADS_ABBRN_JURIS )TADS ON OOF_IND.juris_code = TADS.abbrn_juris AND OOF_IND.tax_eng_type = TADS.src_geo_scheme
+LEFT JOIN EDW_METADATA_VW.SRC_SYS_NUM SRC ON OOF_IND.src_sys_id = SRC.src_sys_num
+LEFT JOIN EDW_METADATA_VW.TRNFRM_RULE_VAL TRV370 ON 1=1 AND TRV370.rule_num = 370
+LEFT JOIN EDW_METADATA_VW.TRNFRM_RULE_VAL TRV361 ON COALESCE(OOF_IND.lgl_ent_code, OOF_IND.tax_legal_ent_code) LIKE TRV361.key_val_01    AND TRV361.rule_num = 361
+LEFT JOIN EDW_METADATA_VW.TRNFRM_RULE_VAL TRV364  ON OOF_IND.crir_cat = TRV364.key_val_01 AND COALESCE(OOF_IND.lgl_ent_code, OOF_IND.tax_legal_ent_code) = TRV364.key_val_02     AND OOF_IND.ST_CODE = TRV364.key_val_03 AND TRV364.rule_num = 364
+LEFT JOIN EDW_METADATA_VW.TRNFRM_RULE_VAL TRV362 ON billing_geo_lkup = TRV362.key_val_01 AND TRV362.rule_num = 362
+) BILL_GEO 
+LEFT JOIN EDW_METADATA_VW.SRC_SYS_NUM SRC ON BILL_GEO.src_sys_id = SRC.src_sys_num
+LEFT JOIN EDW_METADATA_VW.TRNFRM_RULE_VAL TRV370 ON 1=1 AND TRV370.rule_num = 370
+LEFT JOIN EDW_METADATA_VW.TRNFRM_RULE_VAL TRV355 ON TRIM(BILL_GEO.crir_cat) = TRIM(TRV355.key_val_01) AND SRC.src_sys_num = TRV355.src_sys_num AND COALESCE(BILL_GEO.lgl_ent_code, BILL_GEO.tax_legal_ent_code)  LIKE TRV355.key_val_02     AND BILL_GEO.oof_ind = TRV355.key_val_03 AND TRV355.rule_num = 355
+LEFT JOIN EDW_METADATA_VW.TRNFRM_RULE_VAL TRV354_LEC ON TRIM(BILL_GEO.crir_cat) = TRIM(TRV354_LEC.key_val_01) AND TRIM(BILL_GEO.billing_geo) = TRIM(TRV354_LEC.key_val_02) AND BILL_GEO.oof_ind = TRV354_LEC.key_val_03 AND TRV354_LEC.rule_num = 354
+LEFT JOIN EDW_METADATA_VW.TRNFRM_RULE_VAL TRV354_NON_LEC  ON TRIM(BILL_GEO.billing_geo) = TRIM(TRV354_NON_LEC.key_val_02) AND TRIM(TRV354_NON_LEC.key_val_01) = 'NON_LEC' AND TRV354_NON_LEC.rule_num = 354
+LEFT JOIN EDW_METADATA_VW.TRNFRM_RULE_VAL TRV366 ON SRC.reg_ind = TRV366.key_val_01 AND TRV366.rule_num = 366 
+LEFT JOIN EDW_METADATA_VW.TRNFRM_RULE_VAL TRV371 ON   TRV371.src_sys_num = SRC.src_sys_num AND  COALESCE(BILL_GEO.lgl_ent_code,BILL_GEO.tax_legal_ent_code,BILL_GEO.ent_code) LIKE TRV371.key_val_01 AND  TRV371.rule_num = 371
+LEFT JOIN  EDW_METADATA_VW.TRNFRM_RULE_VAL TRV358 ON   TRV358.src_sys_num = SRC.src_sys_num AND  BILL_GEO.R10comp_code = TRV358.key_val_01 AND  BILL_GEO.R10st_code = TRV358.key_val_02 AND  TRV358.rule_num = 358
+LEFT JOIN EDW_METADATA_VW.TRNFRM_RULE_VAL TRV356 ON BILL_GEO.crir_cat = TRV356.key_val_01 AND fin_geo = TRV356.key_val_02 AND TRV356.rule_num = 356
+LEFT JOIN EDW_METADATA_VW.TRNFRM_RULE_VAL TRV357 ON BILL_GEO.crir_idn_code = TRV357.key_val_01 AND TRV357.rule_num = 357;
+     
