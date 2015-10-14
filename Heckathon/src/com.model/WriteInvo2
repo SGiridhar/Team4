@@ -1,0 +1,44 @@
+package com.model;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+public class WriteInvo2 {
+	public static void WriteCol(String queryNumber, String type,String words,String col) throws IOException
+	{
+		
+		Map<String,Object[]> data= new HashMap<String,Object[]>();
+		 List<String> sqlDML=new ArrayList<String>();
+		 File myfile= new File("C://Users/Administrator/Documents/Heckathon/Result.xlsx");
+		 FileInputStream fis= new FileInputStream(myfile);
+		 XSSFWorkbook myworkbook = new XSSFWorkbook(fis);
+		 XSSFSheet mysheet= myworkbook.getSheetAt(2);
+		data.put(queryNumber,new Object[]{queryNumber,type,words,col});
+		Set<String> newRows = data.keySet();
+		int rownum=mysheet.getPhysicalNumberOfRows();
+		for(String Key :newRows)
+		{
+			Row row=mysheet.createRow(rownum++);
+			Object[] objArr=data.get(Key);
+			int cellnum=0;
+			for(Object obj:objArr){
+				Cell cell=row.createCell(cellnum++);
+				cell.setCellValue((String)obj);
+			}
+		}
+		FileOutputStream os= new FileOutputStream(myfile);
+		myworkbook.write(os);
+		System.out.println("Record Entered");
+	}
+}
