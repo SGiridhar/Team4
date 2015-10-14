@@ -1,0 +1,113 @@
+package com.model;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class DeleteMapping {
+
+	public static void getDMapping(String sql2,String result1,String ID) throws IOException
+	{
+		String result="no";
+		List<String> sourceCol=new ArrayList();
+		List<String> desCol=new ArrayList();
+		int sIndex=-1, eIndex=-1;
+				String query="";
+		String[] sql= sql2.split("\\s+");
+		System.out.println(result1);
+		int pointer=0;
+		/*for(int j=0;j<sql.length;j++)
+		{*/
+			/*if(sql[j].toLowerCase().contains("from") && !sql[j-1].toLowerCase().contains("delete"))
+			{*/
+//				sIndex=j+1;
+//				 result="yes";
+//				 System.out.println("result is yes");
+				String[] val= result1.split("\\.");
+				/*if(sql[j+1].contains("."))
+				{
+					sourceCol.add(sql[j+1]);
+					String y=UpdateMapping.checkcol(sql[j+1], sql);
+					String[] x=y.split("\\.");
+					if(y!=""){*/
+				WriteXlsx.WriteCol("Delete",ID,val[0],val[1],"All being Effected","NIL","NIL","NIL","NIL");
+		//}
+				/*pointer=1;
+					}
+				}
+			}
+			else if(sql[j].toLowerCase().contains("join"))
+			{
+				String[] val= result1.split("\\.");
+				if(sql[j+1].contains("."))
+				{
+					sourceCol.add(sql[j+1]);
+					String[] x=sql[j+1].split("\\.");
+					WriteXlsx.WriteCol("Delete",ID,val[0],val[1],"All being Effected","NIL","NIL","NIL","NIL");
+				pointer=1;
+				}
+			}
+			else
+			{
+				
+				
+			}
+		}
+		if(pointer==0)
+		{
+			String[] val= result1.split("\\.");
+			WriteXlsx.WriteCol("Delete",ID,val[0],val[1],"All being Effected","NIL","NIL","Sinfo[2]","JOIN");
+		}
+				*/
+			}
+	
+	public static String checkcol(String result,String[] sql)
+	{
+		String colName="";
+		String col1="";
+		String col2="";
+		if(result.indexOf(".")!=-1)
+				{
+			String[] values= result.split("\\.");	
+			
+			for(int i=0; i<sql.length;i++)
+			{	
+				if(sql[i].contains(values[0]))
+				{
+					if(sql[i-1].indexOf(".")!=-1)
+					{
+					  colName=sql[i-1]+"."+values[1];
+					 // System.out.println(colName);
+					//  System.out.println(sql[i-1]);
+					}
+					else if(sql[i].contains("(")|| sql[i-1].contains("("))
+					{
+						for(int m=i;m>=1;m--)
+						{
+							if(sql[m].toLowerCase().contains("from"))
+									{
+								if(sql[m+1].indexOf(".")!=-1)
+								{
+								  col1=sql[m+1]+"."+values[1];
+								 // System.out.println(col1);
+								  
+								//  System.out.println(sql[i-1]);
+								}
+									}
+								if(sql[m].toLowerCase().contains("join"))
+								{
+									 col2=sql[m+1]+"."+values[1];
+									 // System.out.println(col2);
+								}
+								colName=col1+","+col2;
+									}
+						}
+					}
+				}
+			}
+		
+		
+		return colName;
+	}
+	}
+
