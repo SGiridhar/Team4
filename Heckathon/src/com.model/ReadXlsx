@@ -1,0 +1,57 @@
+package com.model;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+public class ReadXlsx {
+public List<String>  GetXlsx() throws IOException
+{
+ List<String> sqlDML=new ArrayList<String>();
+ File myfile= new File("C://Users/Administrator/Documents/Heckathon/Hackathon-SQL.xlsx");
+ FileInputStream fis= new FileInputStream(myfile);
+ XSSFWorkbook myworkbook = new XSSFWorkbook(fis);
+ XSSFSheet mysheet= myworkbook.getSheetAt(0);
+ Iterator<Row> rowIterator= mysheet.iterator();
+ while(rowIterator.hasNext())
+ {
+  Row row=rowIterator.next();
+  Iterator<Cell> cellIterator = row.cellIterator();
+  while(cellIterator.hasNext())
+  {
+   Cell cell= cellIterator.next();
+   switch(cell.getCellType())
+   {
+   case Cell.CELL_TYPE_STRING:
+    //System.out.print(cell.getStringCellValue()+"\t");
+    sqlDML.add(cell.getStringCellValue());
+	   break;
+   case Cell.CELL_TYPE_NUMERIC:
+    //System.out.print(cell.getNumericCellValue()+"\t");
+	   sqlDML.add(Double.toString(cell.getNumericCellValue()));
+	   break;
+   default:
+   }
+  }
+  System.out.println(" ");
+ }
+ return sqlDML;
+}
+ 
+ 
+ 
+   
+   
+   
+   
+  
+}
+ 
+ 
+ 
