@@ -1,0 +1,9 @@
+UPDATE H1 FROM
+EDW_BASE_VW.BILL_IND_SET_HIST H1
+, EDW_BASE_VW.BILL_IND_SET_HIST H2
+SET end_date = H2.start_date
+WHERE H1.bill_ind_set_id = H2.bill_ind_set_id
+AND h1.gpc_type = h2.gpc_type
+AND h1.end_date IS NULL
+AND H2.end_date IS NULL
+AND (H1.start_date < H2.start_date  OR ( H1.start_date = H2.start_date  AND H1.create_dttm < H2.create_dttm)) ;
