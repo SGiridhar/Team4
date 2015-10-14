@@ -1,0 +1,3 @@
+DELETE FROM EDW_SUM_VW.gl_product_assignment_hist
+WHERE PROD_YEAR_MONTH =<rev_year_month>
+AND gpc_type IS NOT NULL;
